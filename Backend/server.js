@@ -60,3 +60,98 @@ app.post("/api/connect-db", async (req, res) => {
 
 // 3. Close the connection
 //connection.end();
+
+// Add supplier with multiple phone numbers
+// delete if cooked ah code
+app.post('/addSupplier', (req, res) => {
+    const supplierName = req.body.supplierName?.trim();
+    const email = req.body.email?.trim();
+
+    let phoneNumbers = req.body.phoneNumbers || [];
+
+    // Ensure phoneNumbers is always an array
+    if (!Array.isArray(phoneNumbers)) {
+        phoneNumbers = [phoneNumbers];
+    }
+
+    // Trim and remove empty values
+    phoneNumbers = phoneNumbers
+        .map(phone => String(phone).trim())
+        .filter(phone => phone !== '');
+
+    // Basic validation
+    if (!supplierName || !email || phoneNumbers.length === 0) {
+        return res.status(400).send('Error: supplier name, email, and at least one phone number are required.');
+    }
+
+    // Optional: prevent duplicate phone numbers in the same submission
+    const uniquePhones = [...new Set(phoneNumbers)];
+    if (uniquePhones.length !== phoneNumbers.length) {
+        return res.status(400).send('Error: duplicate phone numbers were entered in the form.');
+    }
+
+    // Start transaction so inserts stay consistent
+    db.beginTransaction((err) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Database error: could not start transaction.');
+        }
+
+        const insertSupplierSQL = `
+            INSERT INTO SUPPLIERS (Name, Email)
+            VALUES (?, ?)
+        `;
+
+        db.query(insertSupplierSQL, [supplierName, email], (err, supplierResult) => {
+            if (err) {
+                return db.rollback(() => {
+                    console.error(err);
+
+                    if (err.code === 'ER_DUP_ENTRY') {
+                        return res.status(400).send('Error: that supplier email already exists.');
+                    }
+
+                    return res.status(500).send('Database error: could not add supplier.');
+                });
+            }
+
+            const supplierID = supplierResult.insertId;
+
+            const phoneValues = phoneNumbers.map(phone => [phone, supplierID]);
+
+            const insertPhonesSQL = `
+                INSERT INTO PHONE_NUMBERS (PhoneNumber, SupplierID)
+                VALUES ?
+            `;
+
+            db.query(insertPhonesSQL, [phoneValues], (err) => {
+                if (err) {
+                    return db.rollback(() => {
+                        console.error(err);
+
+                        if (err.code === 'ER_DUP_ENTRY') {
+                            return res.status(400).send('Error: one of the phone numbers already exists.');
+                        }
+
+                        if (err.code === 'ER_NO_REFERENCED_ROW_2') {
+                            return res.status(400).send('Error: invalid supplier reference.');
+                        }
+
+                        return res.status(500).send('Database error: could not add phone numbers.');
+                    });
+                }
+
+                db.commit((err) => {
+                    if (err) {
+                        return db.rollback(() => {
+                            console.error(err);
+                            return res.status(500).send('Database error: could not commit transaction.');
+                        });
+                    }
+
+                    res.send('Supplier added successfully.');
+                });
+            });
+        });
+    });
+});
