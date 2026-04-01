@@ -48,7 +48,7 @@ app.post("/api/connect-db", async (req, res) => {
         connection = await mysql.createConnection({ host, user, password, database });
         await connection.end();
         */
-        res.json({ success: true });
+        res.json({ status: "success", message: "Connected to MySQL!" });
 
     } catch (err) {
         res.status(500).json({ status: "error", message: err.message });

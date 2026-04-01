@@ -27,7 +27,7 @@ window.addEventListener("DOMContentLoaded", () => {
             const data = await res.json();
             console.log("Backend response:", data);
 
-            if (data.success) {
+            if (data.status === "success") {
                 document.getElementById("dbModal").style.display = "none";
 
                 // ✔ store ONLY after success
