@@ -1,7 +1,7 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    height: 100vh;
+    min-height: 100vh;
     /* full screen */
     display: flex;
     flex-direction: column;
@@ -74,4 +74,32 @@ footer {
     border-top: 2px solid #ccc;
     background-color: whitesmoke;
     outline: 5px solid #2563eb;
+    margin-top:auto;
+}
+
+
+
+
+
+
+.popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: none; /* hidden by default */
+    justify-content: center;
+    align-items: center;
+}
+
+.popup-box {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 350px;
+}
+
+.popup-box input {
+    width: 100%;
+    padding: 8px;
+    margin: 5px 0;
 }

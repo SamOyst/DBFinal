@@ -14,7 +14,7 @@ app.listen(port, () => {
 
 
 
-//Open SQL
+/*Open SQL
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -37,3 +37,4 @@ connection.query(
 
 // 3. Close the connection
 connection.end();
+*/

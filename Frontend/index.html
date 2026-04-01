@@ -15,15 +15,32 @@
 </header>
 
 <body>
+    <div id="dbModal" class="popup-overlay">
+    <div class="popup-box">
+        <h2>Database Login</h2>
+
+        <form id="dbForm">
+            <input name="host" placeholder="Host" required>
+            <input name="user" placeholder="User" required>
+            <input name="password" type="password" placeholder="Password" required>
+            <input name="database" placeholder="Database" required>
+
+            <button type="submit">Connect</button>
+        </form>
+    </div>
+</div>
+
+
+
     <div>
         <div>
             <img src="/Resources/ChatGPT Image Apr 1, 2026, 01_19_39 PM.png" alt="Logo" height="300px" width="400px">
         </div>
         <div>
-            <a href="">Check Tables</a>
-            <a href="">Add Suppliers</a>
-            <a href="">Annual Expenses</a>
-            <a href="">Budget Projections</a>
+            <a href="tableCheck.html">Check Tables</a>
+            <a href="addSupplier.html">Add Suppliers</a>
+            <a href="annualExpenses.html">Annual Expenses</a>
+            <a href="budgetProjections.html">Budget Projections</a>
         </div>
     </div>
 </body>
