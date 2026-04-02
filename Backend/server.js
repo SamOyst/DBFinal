@@ -12,12 +12,15 @@ const mysql = require('mysql2');
 const cors = require("cors");
 app.use(cors());
 
+const session = require("express-session");
 
+app.use(session({
+    secret: "supersecretkey",
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false } // true only if HTTPS
+}));
 
-//Initialize variables for future
-let username;
-let password;
-let database;
 
 
 
@@ -34,8 +37,15 @@ app.listen(port, () => {
 
 //Endpoint to provide values for username, password and database to be used in the future -----------------------------
 app.post("/api/connect-db", async (req, res) => {
-    console.log("RAW BODY:", req.body);
     const { username, password, database } = req.body;
+
+    req.session.db = {
+        username,
+        password,
+        database
+    };
+
+    console.log("Session saved");
 
     try {
         // connect then close connection
@@ -58,9 +68,13 @@ app.post("/api/connect-db", async (req, res) => {
 
 //Endpoint to get a table ---------------------------------------------------------------------------------------------
 app.post("/api/getTable", async (req, res) => {
+    const { table , username, password, database} = req.body;
 
-    const { table } = req.body;
-
+        /*
+//
+//
+    */
+    console.log("Endpoint reached!");
     //Prevent tables from getting nuked
     if (!table || !/^[a-zA-Z0-9_]+$/.test(table)) {
         return res.status(400).json({
@@ -69,6 +83,14 @@ app.post("/api/getTable", async (req, res) => {
         });
     }
 
+if (!req.session.db) {
+    return res.status(401).json({
+        status: "error",
+        message: "No database session found. Please connect first."
+    });
+}
+
+console.log("Trying to connect");
     const connection = mysql.createConnection({
         host: "localhost",
         user: username,
@@ -76,16 +98,18 @@ app.post("/api/getTable", async (req, res) => {
         database: database
     });
 
+    console.log("Connection success!");
+
     const sql = `SELECT * FROM \`${table}\``;
 
     connection.query(sql, function (err, results, fields) {
         if (err) {
-            connection.end();
             return res.status(500).json({
                 status: "error",
                 message: err.message
             });
         }
+        connection.end();
 
         const rowCount = results.length;      // number of rows
         const colCount = fields.length;       // number of columns
